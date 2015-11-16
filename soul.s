@@ -1,5 +1,6 @@
 @ vim:ft=armv5
 .set TIME_SZ 200000
+.set MAX_ALARMS 200000
 .org 0x0
 .section .iv,"a"
 
@@ -131,151 +132,25 @@ SYSCALL_HANDLER:
     cmp r7, #22
     beq set_alarm
 
-read_sonar:
-    stmfd sp, {r1-r10}
+   
+@read_sonar
+.include readsonar.s
 
-    mov r2, #0x53F84000 @ Endereço do registrador de dados da GPIO
-    ldr r1, [r2]
+@set_motor_speed
+.include setmotorspeed.s
 
-    bic r1, r1, #0x0000003C @ Máscara para os bits do SONAR_MUX
-    lsl r0, r0, #2
-    and r0, r0, #0x0000003C
-    eor r1, r1, r0
-    
-    @ Sonar_mux <= sonar_id
-    str r1,[r2] 
+@get_time
+.include gettime.s
 
-
-    @ Trigger <= 0
-    bic r1, r1,#0x00000002
-    str r1,[r2] 
-
-    @ Delay 15ms
-    mov r3, SYS_TIME
-    ldr r4, [r3] @ carrega o tempo do sistema
-    add r4, r4, #15
-
-loop_timer:
-    ldr r5, [r3]
-    cmp r5, r4
-    bls loop_timer
-
-
-    @ Trigger <= 1
-    eor r1, r1, #0x00000002
-    str r1,[r2] 
-
-    @ Delay 15ms
-    ldr r4, [r3] @ carrega o tempo do sistema
-    add r4, r4, #15
-
-loop_timer2:
-    ldr r5, [r3]
-    cmp r5, r4
-    bls loop_timer2
-
-    @ Trigger <= 0
-    bic r1, r1,#0x00000002
-    str r1,[r2] 
-
-testa_flag:
-    @ FLAG == 1?
-    ldr r1, [r2] 
-    bic r1, r1, #0xFFFFFFFE
-
-    cmp r1, #1
-    beq fim
-
-    @ Delay 10ms
-    ldr r4, [r3] @ carrega o tempo do sistema
-    add r4, r4, #10
-
-loop_timer3:
-    ldr r5, [r3]
-    cmp r5, r4
-    bls loop_timer3
-
-    b testa_flag 
-
-
-fim:
-    ldr r1, [r2] 
-    bic r1, r1, #0xFFFC0000
-    lsr r1, r1, #6
-
-    mov r1, r0
-
-    ldmfd sp, {r1-r10}
-    movs pc, lr
-    
-@ /read_sonar
-
-set_motor_speed:
-    cmp r1, #63
-    bhi quit
-    cmp r0, #0
-    beq set_motor0
-    cmp r0, #1
-    beq set_motor1
-    mov r0, #-1
-    movs pc, lr
-quit:
-    mov r0, #-2
-    movs pc, lr
-
-
-set_motor0:
-    stmfd sp, {r1-r10}
-
-    mov r2, #0x53F84000 @ Endereço do registrador de dados da GPIO
-    ldr r3, [r2]
-
-    orr r3, r3, #0x00040000 @ Escreve 1 no bit de write
-    bic r3, r3, #0x01F80000
-    lsl r1, r1, #19
-    eor r3, r3, r1
-    
-    str r3, [r2]
-
-    bic r3, r3, #0x00040000 @ Escreve 0 no bit de write
-    
-    str r3, [r2]
-
-    mov r0, #0
-
-    ldmfd sp, {r1-r10}
-    movs pc, lr
-
-set_motor1:
-    stmfd sp, {r1-r10}
-
-    mov r2, #0x53F84000 @ Endereço do registrador de dados da GPIO
-    ldr r3, [r2]
-
-    orr r3, r3, #0x02000000 @ Escreve 1 no bit de write
-    bic r3, r3, #0xFC000000
-    lsl r1, r1, #26
-    eor r3, r3, r1
-    
-    str r3, [r2]
-
-    bic r3, r3, #0x02000000 @ Escreve 0 no bit de write
-    
-    str r3, [r2]
-
-    mov r0, #0
-
-    ldmfd sp, {r1-r10}
-    movs pc, lr
-
-@/set_motor_speed
-
-get_time:
-    mov r0, SYS_TIME
-    ldr r0, [r0]
-
-    movs pc, lr
+@set_alarm
+.include setalarm.s
 
 .data
 SYS_TIME:
 	.word 0x0
+num_alarms:
+    .word 0x0
+alarms_vector:
+    .fill 8*MAX_ALARMS 
+@ cada alarme é representado por 8 bytes. os quatro primeiro armazenam o tempo
+@ do alarme e os quatro últimos armazenam a posição para qual se deve saltar.
