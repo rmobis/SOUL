@@ -1,5 +1,5 @@
 read_sonar:
-    stmfd sp, {r1-r10}
+    stmfd sp!, {r1-r10}
 
     mov r2, #DR @ Endereço do registrador de dados da GPIO
     ldr r1, [r2]
@@ -73,6 +73,6 @@ fim_readsonar:
 
     mov r1, r0
 
-    ldmfd sp, {r1-r10}
+    ldmfd sp!, {r1-r10}
     movs pc, lr
  

@@ -1,5 +1,5 @@
 set_alarm:
-    stmfd sp, {r1-r10}
+    stmfd sp!, {r1-r10}
 
     @ Testa o número de alarmes ativos
     ldr r2, =num_alarms
@@ -31,7 +31,7 @@ set_alarm:
     str r3, [r2]
 
 fim_setalarm:
-    ldmfd sp, {r1-r10}
+    ldmfd sp!, {r1-r10}
     movs pc, lr
 
 alarm_overflow:

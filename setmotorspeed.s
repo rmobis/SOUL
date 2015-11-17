@@ -13,7 +13,7 @@ quit:
 
 
 set_motor0:
-    stmfd sp, {r1-r10}
+    stmfd sp!,{r1-r10}
 
     mov r2, #DR @ Endereço do registrador de dados da GPIO
     ldr r3, [r2]
@@ -31,11 +31,11 @@ set_motor0:
 
     mov r0, #0
 
-    ldmfd sp, {r1-r10}
+    ldmfd sp!, {r1-r10}
     movs pc, lr
 
 set_motor1:
-    stmfd sp, {r1-r10}
+    stmfd sp!, {r1-r10}
 
     mov r2, #0x53F84000 @ Endereço do registrador de dados da GPIO
     ldr r3, [r2]
@@ -53,7 +53,7 @@ set_motor1:
 
     mov r0, #0
 
-    ldmfd sp, {r1-r10}
+    ldmfd sp!, {r1-r10}
     movs pc, lr
 
 

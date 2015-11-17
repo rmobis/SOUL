@@ -1,5 +1,5 @@
 IRQ_HANDLER:
-    stmfd sp, {r0-r10}
+    stmfd sp!, {r0-r10}
     ldr r0, =0x53FA0008 
     ldr r1, =1
     str r1, [r0]
@@ -18,7 +18,7 @@ IRQ_HANDLER:
 
 fim_irq:
     sub lr, lr, #4
-    ldmfd sp, {r0-r10}
+    ldmfd sp!, {r0-r10}
     movs pc, lr
 
 remove_alarm:
