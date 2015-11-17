@@ -1,6 +1,9 @@
 @ vim:ft=armv5
 .set TIME_SZ 200000
-.set MAX_ALARMS 200000
+.set MAX_ALARMS 20
+.set DR 0x53F84000
+.set GDIR 0x53F84004
+.set PSR 0x53F84008
 .org 0x0
 .section .iv,"a"
 
@@ -93,7 +96,7 @@ SET_TZIC:
     msr  CPSR_c, #0x13       @ SUPERVISOR mode, IRQ/FIQ enabled
 
     @Configura GPIO
-    mov r0, #0x53F84004
+    mov r0, GDIR
 
     @ Ta serto?
     mov r1, #2_11111111111111000000000000111110
@@ -102,19 +105,7 @@ SET_TZIC:
     @ Como vou transferir pra main do código em C??
 
 
-IRQ_HANDLER:
-    ldr r0, =0x53FA0008 
-    ldr r1, =1
-    str r1, [r0]
-
-    ldr r0,=SYS_TIME
-    ldr r1, [r0]
-    add r1, r1, #1
-    str r1, [r0]
-
-    sub lr, lr, 4
-
-    movs pc, lr
+.include irqhandler.s   
 
 SYSCALL_HANDLER:
     cmp r7, #16
@@ -150,6 +141,9 @@ SYS_TIME:
 	.word 0x0
 num_alarms:
     .word 0x0
+prox_alarm:
+    .word -1 @ inicializo o próximo alarme com -1 porque -1 é equivalente ao maior unsigned
+    .word 0 @ posição no vetor de alarmes do próximo alarme
 alarms_vector:
     .fill 8*MAX_ALARMS 
 @ cada alarme é representado por 8 bytes. os quatro primeiro armazenam o tempo

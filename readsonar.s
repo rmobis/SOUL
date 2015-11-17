@@ -1,7 +1,7 @@
 read_sonar:
     stmfd sp, {r1-r10}
 
-    mov r2, #0x53F84000 @ Endereço do registrador de dados da GPIO
+    mov r2, #DR @ Endereço do registrador de dados da GPIO
     ldr r1, [r2]
 
     bic r1, r1, #0x0000003C @ Máscara para os bits do SONAR_MUX
@@ -45,13 +45,14 @@ loop_timer2:
     bic r1, r1,#0x00000002
     str r1,[r2] 
 
+    mov r2, #PSR @ Endereço do registrador de dados da GPIO
 testa_flag:
     @ FLAG == 1?
     ldr r1, [r2] 
     bic r1, r1, #0xFFFFFFFE
 
     cmp r1, #1
-    beq fim
+    beq fim_readsonar
 
     @ Delay 10ms
     ldr r4, [r3] @ carrega o tempo do sistema
@@ -65,7 +66,7 @@ loop_timer3:
     b testa_flag 
 
 
-fim:
+fim_readsonar:
     ldr r1, [r2] 
     bic r1, r1, #0xFFFC0000
     lsr r1, r1, #6
