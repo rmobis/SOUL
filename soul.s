@@ -1,28 +1,31 @@
 @ vim:ft=armv5
 
 @ CONSTANTS
-.set GPT_BASE,       0x53FA0000
-.set GPT_CR,         0x00
-.set GPT_PR,         0x04
-.set GPT_SR,         0x08
-.set GPT_IR,         0x0C
-.set GPT_OCR1,       0x10
+.set GPT_BASE,        0x53FA0000
+.set GPT_CR,          0x00
+.set GPT_PR,          0x04
+.set GPT_SR,          0x08
+.set GPT_IR,          0x0C
+.set GPT_OCR1,        0x10
 
-.set TZIC_BASE,      0x0FFFC000
-.set TZIC_INTCTRL,   0x00
-.set TZIC_INTSEC1,   0x84
-.set TZIC_ENSET1,    0x0104
-.set TZIC_PRIOMASK,  0x0C
-.set TZIC_PRIORITY9, 0x0424
+.set TZIC_BASE,       0x0FFFC000
+.set TZIC_INTCTRL,    0x00
+.set TZIC_INTSEC1,    0x84
+.set TZIC_ENSET1,     0x0104
+.set TZIC_PRIOMASK,   0x0C
+.set TZIC_PRIORITY9,  0x0424
 
-.set GPIO_BASE,      0x0FFFC000
-.set GPIO_DR,        0x00
-.set GPIO_GDIR,      0x84
-.set GPIO_PSR,       0x84
+.set GPIO_BASE,       0x0FFFC000
+.set GPIO_DR,         0x00
+.set GPIO_GDIR,       0x84
+.set GPIO_PSR,        0x84
 
-.set TIME_SZ,        0x400
-.set MAX_ALARMS,     8
-.set MAX_CALLBACKS,  8
+.set SUPERVISOR_MODE, 0x13
+.set USER_MODE,       0x10
+
+.set TIME_SZ,         0x400
+.set MAX_ALARMS,      8
+.set MAX_CALLBACKS,   8
 
 .org 0x0
 .section .iv,"a"
@@ -99,8 +102,8 @@ SETUP_TZIC:
     mov r1, #1
     str r1, [r0, #TZIC_INTCTRL]
 
-    @ Enables IRQ/FIQ interruptions and goes to supervisor mode
-    msr CPSR_c, #0x13
+    @ Goes into supervisor mode
+    msr CPSR_c, #SUPERVISOR_MODE
 
 
 SETUP_GPIO:
@@ -150,7 +153,7 @@ SYSCALL_HANDLER:
 
 .data
 SYS_TIME:
-	.word 0x0
+    .word 0x0
 num_alarms:
     .word 0x0
 prox_alarm:
