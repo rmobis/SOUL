@@ -113,43 +113,31 @@ SETUP_GPIO:
     ldr r1, =0b11111111111111000000000000111110
     str r1, [r0, #GPIO_GDIR]
 
-    @ Como vou transferir pra main do código em C??
-    msr  CPSR_c, #0x10       @ SUPERVISOR mode, IRQ/FIQ enabled
+    @ Goes into user mode
+    msr CPSR_c, #USER_MODE
+
+    @ Transfers control to user code
     b main
 
 
 
 
-.include "irqhandler.s"
+.include "handlers/irq.s"
 
-SYSCALL_HANDLER:
-    cmp r7, #16
-    beq read_sonar
-    cmp r7, #17
-    beq register_proximity_callback
-    cmp r7, #18
-    beq set_motor_speed
-    cmp r7, #19
-    beq set_motors_speed
-    cmp r7, #20
-    beq get_time
-    cmp r7, #21
-    beq set_time
-    cmp r7, #22
-    beq set_alarm
+.include "handlers/syscall.s"
 
 
 @read_sonar
-.include "readsonar.s"
+.include "syscalls/readsonar.s"
 
 @set_motor_speed
-.include "setmotorspeed.s"
+.include "syscalls/setmotorspeed.s"
 
 @get_time
-.include "gettime.s"
+.include "syscalls/gettime.s"
 
 @set_alarm
-.include "setalarm.s"
+.include "syscalls/setalarm.s"
 
 .data
 SYS_TIME:
