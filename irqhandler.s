@@ -39,7 +39,7 @@ remove_alarm:
 
     @ Remove o valor do vetor de alarmes
 loop_remocao_vetor:
-    cmp r4, r0 << #3
+    cmp r4, r0, LSL #3
     bhs search_next_alarm
     ldr r8, [r7, r4] 
     str r8, [r7,r9]
@@ -66,7 +66,7 @@ search_loop:
     cmp r4, r0
     bhs end_search_loop
 
-    ldr r1, [r7, r4 << 3]
+    ldr r1, [r7, r4, LSL #3]
     cmp r1, r8
     movlo r8, r1
     movlo r3, r4
@@ -76,6 +76,6 @@ end_search_loop:
     str r8, [r2]
     str r3, [r2,#4]
 
-    b fim_irq:
+    b fim_irq
 
  

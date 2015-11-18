@@ -15,7 +15,7 @@ quit:
 set_motor0:
     stmfd sp!,{r1-r10}
 
-    mov r2, #DR @ Endereço do registrador de dados da GPIO
+    ldr r2, =DR @ Endereço do registrador de dados da GPIO
     ldr r3, [r2]
 
     orr r3, r3, #0x00040000 @ Escreve 1 no bit de write
@@ -37,7 +37,7 @@ set_motor0:
 set_motor1:
     stmfd sp!, {r1-r10}
 
-    mov r2, #0x53F84000 @ Endereço do registrador de dados da GPIO
+    ldr r2, =0x53F84000 @ Endereço do registrador de dados da GPIO
     ldr r3, [r2]
 
     orr r3, r3, #0x02000000 @ Escreve 1 no bit de write

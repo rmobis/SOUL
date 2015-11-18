@@ -1,9 +1,9 @@
 @ vim:ft=armv5
-.set TIME_SZ 200000
-.set MAX_ALARMS 20
-.set DR 0x53F84000
-.set GDIR 0x53F84004
-.set PSR 0x53F84008
+.set TIME_SZ, 200000
+.set MAX_ALARMS, 20
+.set DR, 0x53F84000
+.set GDIR, 0x53F84004
+.set PSR, 0x53F84008
 .org 0x0
 .section .iv,"a"
 
@@ -96,16 +96,16 @@ SET_TZIC:
     msr  CPSR_c, #0x13       @ SUPERVISOR mode, IRQ/FIQ enabled
 
     @Configura GPIO
-    mov r0, GDIR
+    ldr r0, =GDIR
 
     @ Ta serto?
-    mov r1, #2_11111111111111000000000000111110
+    ldr r1, =0b11111111111111000000000000111110
     str r1, [r0]
 
     @ Como vou transferir pra main do código em C??
 
 
-.include irqhandler.s   
+.include "irqhandler.s"   
 
 SYSCALL_HANDLER:
     cmp r7, #16
@@ -125,16 +125,16 @@ SYSCALL_HANDLER:
 
    
 @read_sonar
-.include readsonar.s
+.include "readsonar.s"
 
 @set_motor_speed
-.include setmotorspeed.s
+.include "setmotorspeed.s"
 
 @get_time
-.include gettime.s
+.include "gettime.s"
 
 @set_alarm
-.include setalarm.s
+.include "setalarm.s"
 
 .data
 SYS_TIME:
