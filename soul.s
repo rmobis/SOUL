@@ -4,6 +4,7 @@
 .set DR, 0x53F84000
 .set GDIR, 0x53F84004
 .set PSR, 0x53F84008
+.set USER_TEXT, 0x77802000
 .org 0x0
 .section .iv,"a"
 
@@ -97,14 +98,13 @@ SET_TZIC:
 
     @Configura GPIO
     ldr r0, =GDIR
-
-    @ Ta serto?
     ldr r1, =0b11111111111111000000000000111110
     str r1, [r0]
 
-    @ Como vou transferir pra main do código em C??
-    msr  CPSR_c, #0x10       @ SUPERVISOR mode, IRQ/FIQ enabled
-    b main
+    @ Muda o modo de operação e dá branch para código de usuário 
+    msr  CPSR_c, #0x10       
+    ldr r3, =USER_TEXT
+    bx r3
 
 
 
