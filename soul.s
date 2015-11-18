@@ -110,7 +110,11 @@ SETUP_GPIO:
     ldr r1, =0b11111111111111000000000000111110
     str r1, [r0, #GPIO_GDIR]
 
-    @ TODO: Change to user mode and transfer control to user code
+    @ Como vou transferir pra main do código em C??
+    msr  CPSR_c, #0x10       @ SUPERVISOR mode, IRQ/FIQ enabled
+    b main
+
+
 
 
 .include "irqhandler.s"
