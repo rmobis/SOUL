@@ -75,9 +75,10 @@ end_search_loop:
     str r8, [r2]
     str r3, [r2,#4]
 
-    @Tem que dar um branch para a posição em r3
-
-
+    @dá um branch para a posição em r3
+    msr CPSR_c, 0x10
+    bl r6
+    msr CPSR_c, 0x12
 
     b fim_irq
 

@@ -1,6 +1,6 @@
 @ vim:ft=armv5
 .set TIME_SZ, 200000
-.set MAX_ALARMS, 20
+.set MAX_ALARMS, 8
 .set DR, 0x53F84000
 .set GDIR, 0x53F84004
 .set PSR, 0x53F84008
@@ -103,6 +103,10 @@ SET_TZIC:
     str r1, [r0]
 
     @ Como vou transferir pra main do código em C??
+    msr  CPSR_c, #0x10       @ SUPERVISOR mode, IRQ/FIQ enabled
+    b main
+
+
 
 
 .include "irqhandler.s"   
