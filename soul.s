@@ -24,7 +24,7 @@
 .set USER_MODE,       0x10
 
 .set USER_TEXT,       0x77802000
-.set TIME_SZ,         0x400
+.set TIME_SZ,         200000
 .set MAX_ALARMS,      8
 .set MAX_CALLBACKS,   8
 
