@@ -52,7 +52,6 @@ loop_remocao_vetor:
     b loop_remocao_vetor
 
 
-
     @ procura o menor elemento dentro do vetor de alarmes
 search_next_alarm:
     sub r0, r0, #1
@@ -75,6 +74,10 @@ end_search_loop:
 
     str r8, [r2]
     str r3, [r2,#4]
+
+    @Tem que dar um branch para a posição em r3
+
+
 
     b fim_irq
 
