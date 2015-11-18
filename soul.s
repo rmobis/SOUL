@@ -23,6 +23,7 @@
 .set SUPERVISOR_MODE, 0x13
 .set USER_MODE,       0x10
 
+.set USER_TEXT,       0x77802000
 .set TIME_SZ,         0x400
 .set MAX_ALARMS,      8
 .set MAX_CALLBACKS,   8
@@ -117,7 +118,8 @@ SETUP_GPIO:
     msr CPSR_c, #USER_MODE
 
     @ Transfers control to user code
-    b main
+    ldr r3, =USER_TEXT
+    bx r3
 
 
 
