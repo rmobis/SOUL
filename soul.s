@@ -1,14 +1,37 @@
 @ vim:ft=armv5
-.set TIME_SZ, 200000
-.set MAX_ALARMS, 8
-.set DR, 0x53F84000
-.set GDIR, 0x53F84004
-.set PSR, 0x53F84008
-.set USER_TEXT, 0x77802000
+
+@ CONSTANTS
+.set GPT_BASE,        0x53FA0000
+.set GPT_CR,          0x00
+.set GPT_PR,          0x04
+.set GPT_SR,          0x08
+.set GPT_IR,          0x0C
+.set GPT_OCR1,        0x10
+
+.set TZIC_BASE,       0x0FFFC000
+.set TZIC_INTCTRL,    0x00
+.set TZIC_INTSEC1,    0x84
+.set TZIC_ENSET1,     0x0104
+.set TZIC_PRIOMASK,   0x0C
+.set TZIC_PRIORITY9,  0x0424
+
+.set GPIO_BASE,       0x0FFFC000
+.set GPIO_DR,         0x00
+.set GPIO_GDIR,       0x84
+.set GPIO_PSR,        0x84
+
+.set SUPERVISOR_MODE, 0x13
+.set USER_MODE,       0x10
+
+.set USER_TEXT,       0x77802000
+.set TIME_SZ,         0x400      @ This supposedly means 0.1s
+.set MAX_ALARMS,      8
+.set MAX_CALLBACKS,   8
+
 .org 0x0
 .section .iv,"a"
 
-_start:		
+_start:
 
 interrupt_vector:
 
@@ -23,132 +46,110 @@ interrupt_vector:
 .org 0x100
 .text
 
-    @ Zera o contador
-    ldr r2, =SYS_TIME  @lembre-se de declarar esse contador em uma secao de dados! 
-    mov r0,#0
-    str r0,[r2]
 
 RESET_HANDLER:
-
-    @Set interrupt table base address on coprocessor 15.
+    @ Sets the start address of the interrupt vector on the co-processor
     ldr r0, =interrupt_vector
     mcr p15, 0, r0, c12, c0, 0
 
-    ldr r0, =0x53FA0000
+    @ Resets the system clock
+    ldr r0, =SYS_TIME
+    mov r1, #0
+    str r1, [r0]
+
+SETUP_GPT:
+    ldr r0, =GPT_BASE
+
+    @ Enables GPT, specifically on Stop and Wait modes
     ldr r1, =0x41
-    str r1,[r0] 
+    str r1, [r0, #GPT_CR]
 
-    ldr r0, =0x53FA0004 
-    ldr r1, =0x0
-    str r1, [r0]
+    @ Sets the scale to 1
+    mov r1, #0
+    str r1, [r0, #GPT_PR]
 
-    ldr r0, =0x53FA0010 
+    @ Enables the Output Control Channel 1
+    mov r1, #1
+    str r1, [r0, #GPT_IR]
+
+    @ Sets the interval for the interruption
     ldr r1, =TIME_SZ
-    str r1, [r0]
-
-    ldr r0, =0x53FA000c 
-    ldr r1, =1
-    str r1, [r0]
+    str r1, [r0, #GPT_OCR1]
 
 
+SETUP_TZIC:
+    ldr r0, =TZIC_BASE
 
-SET_TZIC:
-    @ Constantes para os enderecos do TZIC
-    .set TZIC_BASE,             0x0FFFC000
-    .set TZIC_INTCTRL,          0x0
-    .set TZIC_INTSEC1,          0x84 
-    .set TZIC_ENSET1,           0x104
-    .set TZIC_PRIOMASK,         0xC
-    .set TZIC_PRIORITY9,        0x424
+    @ Sets GPT (39th) interruption as non-secure
+    mov r1, #(1 << 7)
+    str r1, [r0, #TZIC_INTSEC1]
 
-    @ Liga o controlador de interrupcoes
-    @ R1 <= TZIC_BASE
+    @ Enables GPT (39th) interruption
+    mov r1, #(1 << 7)
+    str r1, [r0, #TZIC_ENSET1]
 
-    ldr	r1, =TZIC_BASE
-
-    @ Configura interrupcao 39 do GPT como nao segura
-    mov	r0, #(1 << 7)
-    str	r0, [r1, #TZIC_INTSEC1]
-
-    @ Habilita interrupcao 39 (GPT)
-    @ reg1 bit 7 (gpt)
-
-    mov	r0, #(1 << 7)
-    str	r0, [r1, #TZIC_ENSET1]
-
-    @ Configure interrupt39 priority as 1
-    @ reg9, byte 3
-
-    ldr r0, [r1, #TZIC_PRIORITY9]
-    bic r0, r0, #0xFF000000
+    @ Sets the interrupt priority to 1 (0 is highest)
+    ldr r1, [r0, #TZIC_PRIORITY9]
+    bic r1, r1, #0xFF000000        @ Clears the first 8 bits
     mov r2, #1
-    orr r0, r0, r2, lsl #24
-    str r0, [r1, #TZIC_PRIORITY9]
+    orr r1, r1, r2, lsl #24        @ Sets the bit 7 to 1
+    str r1, [r0, #TZIC_PRIORITY9]
 
-    @ Configure PRIOMASK as 0
-    eor r0, r0, r0
-    str r0, [r1, #TZIC_PRIOMASK]
+    @ Zeroes the priority mask
+    mov r1, #0
+    str r1, [r0, #TZIC_PRIOMASK]
 
-    @ Habilita o controlador de interrupcoes
-    mov	r0, #1
-    str	r0, [r1, #TZIC_INTCTRL]
+    @ Enables interruptions
+    mov r1, #1
+    str r1, [r0, #TZIC_INTCTRL]
 
-    @instrucao msr - habilita interrupcoes
-    msr  CPSR_c, #0x13       @ SUPERVISOR mode, IRQ/FIQ enabled
+    @ Goes into supervisor mode
+    msr CPSR_c, #SUPERVISOR_MODE
 
-    @Configura GPIO
-    ldr r0, =GDIR
+
+SETUP_GPIO:
+    ldr r0, =GPIO_BASE
+
+    @ Correctly configures input and output lines for the Uóli robot
     ldr r1, =0b11111111111111000000000000111110
-    str r1, [r0]
+    str r1, [r0, #GPIO_GDIR]
 
-    @ Muda o modo de operação e dá branch para código de usuário 
-    msr  CPSR_c, #0x10       
+    @ Goes into user mode
+    msr CPSR_c, #USER_MODE
+
+    @ Transfers control to user code
     ldr r3, =USER_TEXT
     bx r3
 
 
 
 
-.include "irqhandler.s"   
+.include "handlers/irq.s"
 
-SYSCALL_HANDLER:
-    cmp r7, #16
-    beq read_sonar
-    cmp r7, #17
-    beq register_proximity_callback
-    cmp r7, #18
-    beq set_motor_speed
-    cmp r7, #19
-    beq set_motors_speed
-    cmp r7, #20
-    beq get_time
-    cmp r7, #21
-    beq set_time
-    cmp r7, #22
-    beq set_alarm
+.include "handlers/syscall.s"
 
-   
+
 @read_sonar
-.include "readsonar.s"
+.include "syscalls/readsonar.s"
 
 @set_motor_speed
-.include "setmotorspeed.s"
+.include "syscalls/setmotorspeed.s"
 
 @get_time
-.include "gettime.s"
+.include "syscalls/gettime.s"
 
 @set_alarm
-.include "setalarm.s"
+.include "syscalls/setalarm.s"
 
 .data
 SYS_TIME:
-	.word 0x0
+    .word 0x0
 num_alarms:
     .word 0x0
 prox_alarm:
     .word -1 @ inicializo o próximo alarme com -1 porque -1 é equivalente ao maior unsigned
     .word 0 @ posição no vetor de alarmes do próximo alarme
 alarms_vector:
-    .fill 8*MAX_ALARMS 
+    .fill 8*MAX_ALARMS
 @ cada alarme é representado por 8 bytes. os quatro primeiro armazenam o tempo
 @ do alarme e os quatro últimos armazenam a posição para qual se deve saltar.
