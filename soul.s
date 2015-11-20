@@ -144,11 +144,20 @@ SETUP_GPIO:
 @read_sonar
 .include "syscalls/readsonar.s"
 
+@register_proximity_callback
+.include "syscalls/registerproximitycallback.s"
+
 @set_motor_speed
 .include "syscalls/setmotorspeed.s"
 
+@set_motors_speed
+.include "syscalls/setmotorsspeed.s"
+
 @get_time
 .include "syscalls/gettime.s"
+
+@set_time
+.include "syscalls/settime.s"
 
 @set_alarm
 .include "syscalls/setalarm.s"
