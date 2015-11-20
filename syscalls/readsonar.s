@@ -75,4 +75,3 @@ fim_readsonar:
 
     ldmfd sp!, {r1-r10}
     movs pc, lr
-
