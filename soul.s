@@ -34,7 +34,6 @@
 _start:
 
 interrupt_vector:
-
     b RESET_HANDLER
 .org 0x08
     b SYSCALL_HANDLER
