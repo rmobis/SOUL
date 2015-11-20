@@ -5,8 +5,8 @@ SYSCALL_HANDLER:
     @beq register_proximity_callback
     cmp r7, #SYSCALL_SMS
     beq set_motor_speed
-    @cmp r7, #SYSCALL_SMSS
-    @beq set_motors_speed
+    cmp r7, #SYSCALL_SMSS
+    beq set_motors_speed
     cmp r7, #SYSCALL_GT
     beq get_time
     cmp r7, #SYSCALL_GT
