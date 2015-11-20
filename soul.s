@@ -15,7 +15,7 @@
 .set TZIC_PRIOMASK,   0x0C
 .set TZIC_PRIORITY9,  0x0424
 
-.set GPIO_BASE,       0x0FFFC000
+.set GPIO_BASE,       0x53F84000
 .set GPIO_DR,         0x00
 .set GPIO_GDIR,       0x84
 .set GPIO_PSR,        0x84
