@@ -1,6 +1,14 @@
 @ vim:ft=armv5
 
 @ CONSTANTS
+.set SYSCALL_RS,      16
+.set SYSCALL_RPC,     17
+.set SYSCALL_SMS,     18
+.set SYSCALL_SMSS,    19
+.set SYSCALL_GT,      20
+.set SYSCALL_ST,      21
+.set SYSCALL_SA,      22
+
 .set GPT_BASE,        0x53FA0000
 .set GPT_CR,          0x00
 .set GPT_PR,          0x04
