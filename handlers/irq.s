@@ -18,10 +18,7 @@ IRQ_HANDLER:
     cmp r3, r1
     bls remove_alarm
 
-irq_end:
-    sub lr, lr, #4
-    ldmfd sp!, {r0-r10}
-    movs pc, lr
+    b irq_end
 
 remove_alarm:
     @ r4 is the address of the interruption on the interruptions vector
@@ -82,4 +79,7 @@ end_search_loop:
     blx r6
     msr CPSR_c, 0x12
 
-    b irq_end
+irq_end:
+    sub lr, lr, #4
+    ldmfd sp!, {r0-r10}
+    movs pc, lr
