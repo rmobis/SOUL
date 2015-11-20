@@ -1,40 +1,45 @@
 @ vim:ft=armv5
 
 @ CONSTANTS
-.set SYSCALL_RS,      16
-.set SYSCALL_RPC,     17
-.set SYSCALL_SMS,     18
-.set SYSCALL_SMSS,    19
-.set SYSCALL_GT,      20
-.set SYSCALL_ST,      21
-.set SYSCALL_SA,      22
+.set SYSCALL_RS,        16
+.set SYSCALL_RPC,       17
+.set SYSCALL_SMS,       18
+.set SYSCALL_SMSS,      19
+.set SYSCALL_GT,        20
+.set SYSCALL_ST,        21
+.set SYSCALL_SA,        22
 
-.set GPT_BASE,        0x53FA0000
-.set GPT_CR,          0x00
-.set GPT_PR,          0x04
-.set GPT_SR,          0x08
-.set GPT_IR,          0x0C
-.set GPT_OCR1,        0x10
+.set CALLBACK_SONAR,    0x00
+.set CALLBACK_PROX,     0x01
+.set CALLBACK_FUNCTION, 0x05
+.set CALLBACK_SIZE,     0x07
 
-.set TZIC_BASE,       0x0FFFC000
-.set TZIC_INTCTRL,    0x00
-.set TZIC_INTSEC1,    0x84
-.set TZIC_ENSET1,     0x0104
-.set TZIC_PRIOMASK,   0x0C
-.set TZIC_PRIORITY9,  0x0424
+.set GPT_BASE,          0x53FA0000
+.set GPT_CR,            0x00
+.set GPT_PR,            0x04
+.set GPT_SR,            0x08
+.set GPT_IR,            0x0C
+.set GPT_OCR1,          0x10
 
-.set GPIO_BASE,       0x53F84000
-.set GPIO_DR,         0x00
-.set GPIO_GDIR,       0x84
-.set GPIO_PSR,        0x84
+.set TZIC_BASE,         0x0FFFC000
+.set TZIC_INTCTRL,      0x00
+.set TZIC_INTSEC1,      0x84
+.set TZIC_ENSET1,       0x0104
+.set TZIC_PRIOMASK,     0x0C
+.set TZIC_PRIORITY9,    0x0424
 
-.set SUPERVISOR_MODE, 0x13
-.set USER_MODE,       0x10
+.set GPIO_BASE,         0x53F84000
+.set GPIO_DR,           0x00
+.set GPIO_GDIR,         0x84
+.set GPIO_PSR,          0x84
 
-.set USER_TEXT,       0x77802000
-.set TIME_SZ,         200000
-.set MAX_ALARMS,      8
-.set MAX_CALLBACKS,   8
+.set SUPERVISOR_MODE,   0x13
+.set USER_MODE,         0x10
+
+.set USER_TEXT,         0x77802000
+.set TIME_SZ,           200000
+.set MAX_ALARMS,        8
+.set MAX_CALLBACKS,     8
 
 .org 0x0
 .section .iv,"a"
@@ -163,3 +168,11 @@ alarms_vector:
     @ Each alarm is represented by 2 blocks of 4 bytes; the first one stores the
     @ scheduled time and the second one, the routine's address
     .fill 8*MAX_ALARMS
+
+num_callbacks:
+    .word 0
+callback_vector:
+    @ Each callback is represented by 3 blocks: one 1 byte long for the sonar
+    @ identifier, one 2 bytes long for the proximity threshold and one 4 bytes
+    @ long for the routine's address
+    .fill 7 * MAX_CALLBACKS

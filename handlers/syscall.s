@@ -1,8 +1,8 @@
 SYSCALL_HANDLER:
     cmp r7, #SYSCALL_RS
     beq read_sonar
-    @cmp r7, #SYSCALL_RPC
-    @beq register_proximity_callback
+    cmp r7, #SYSCALL_RPC
+    beq register_proximity_callback
     cmp r7, #SYSCALL_SMS
     beq set_motor_speed
     cmp r7, #SYSCALL_SMSS
