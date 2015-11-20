@@ -143,12 +143,15 @@ SETUP_GPIO:
 .data
 SYS_TIME:
     .word 0x0
+
 num_alarms:
     .word 0x0
+
 prox_alarm:
-    .word -1 @ inicializo o próximo alarme com -1 porque -1 é equivalente ao maior unsigned
-    .word 0 @ posição no vetor de alarmes do próximo alarme
+    .word -1 @ We initialize with -1 because that's the biggest unsigned value
+    .word 0 @ Position of the next alarm on the alarms vector
+
 alarms_vector:
+    @ Each alarm is represented by 2 blocks of 4 bytes; the first one stores the
+    @ scheduled time and the second one, the routine's address
     .fill 8*MAX_ALARMS
-@ cada alarme é representado por 8 bytes. os quatro primeiro armazenam o tempo
-@ do alarme e os quatro últimos armazenam a posição para qual se deve saltar.
