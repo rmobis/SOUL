@@ -1,6 +1,7 @@
 *.c
 *.o
 *.h
+*.x
 api_robot2.s
 MC404.html
 MC404_files
