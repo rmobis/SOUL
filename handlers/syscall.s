@@ -9,7 +9,7 @@ SYSCALL_HANDLER:
     beq set_motors_speed
     cmp r7, #SYSCALL_GT
     beq get_time
-    cmp r7, #SYSCALL_GT
+    cmp r7, #SYSCALL_ST
     beq set_time
     cmp r7, #SYSCALL_SA
     beq set_alarm
