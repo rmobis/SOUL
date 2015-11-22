@@ -5,17 +5,17 @@ set_alarm:
     ldr r2, =num_alarms
     ldr r3, [r2]
     cmp r3, #MAX_ALARMS
-    blo alarm_overflow
+    bhi alarm_overflow
 
     @ Checks if the time is lower than system time
     ldr r4, =SYS_TIME
     ldr r4, [r4]
     cmp r4, r1
-    bls too_soon
+    bhi too_soon
 
     @ Writes alarm to the end of alarms vector
-    lsl r3, r3, #3
-    add r4, r3, #alarms_vector
+    ldr r4, =alarms_vector
+    add r4, r4, r3, LSL #3
     str r1, [r4]
     str r0, [r4, #4]
 

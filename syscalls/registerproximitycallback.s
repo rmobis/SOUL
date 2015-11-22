@@ -19,7 +19,7 @@ register_proximity_callback:
 	mla r5, r4, r6, r5
 
 	@ Stores the callback information on the vector
-	strb r0, [r5, #CALLBACK_SONAR]
+	strh r0, [r5, #CALLBACK_SONAR]
 	strh r1, [r5, #CALLBACK_PROX]
 	str r2, [r5, #CALLBACK_FUNCTION]
 

@@ -18,14 +18,12 @@ read_sonar:
     str r1, [r2, #GPIO_DR]
 
     @ Delay 15ms
-    mov r3, #SYS_TIME
-    ldr r4, [r3] @ Loads system time
-    add r4, r4, #15
+    ldr r5, =1700
 
 loop_timer:
-    ldr r5, [r3]
-    cmp r5, r4
-    bls loop_timer
+    sub r5, r5, #1
+    cmp r5, #0
+    bhi loop_timer
 
 
     @ Trigger <= 1
@@ -33,13 +31,12 @@ loop_timer:
     str r1, [r2, #GPIO_DR]
 
     @ Delay 15ms
-    ldr r4, [r3] @ Loads system time
-    add r4, r4, #15
+    ldr r5, =1700
 
 loop_timer2:
-    ldr r5, [r3]
-    cmp r5, r4
-    bls loop_timer2
+    sub r5, r5, #1
+    cmp r5, #0
+    bhi loop_timer2
 
     @ Trigger <= 0
     bic r1, r1, #0x00000002
@@ -47,31 +44,30 @@ loop_timer2:
 
 testa_flag:
     @ FLAG == 1?
-    ldr r1, [r2, #GPIO_PSR]
+    ldr r1, [r2, #GPIO_DR]
     bic r1, r1, #0xFFFFFFFE
 
     cmp r1, #1
     beq fim_readsonar
 
     @ Delay 10ms
-    ldr r4, [r3] @ Loads system time
-    add r4, r4, #10
+    ldr r5, =1100
 
 loop_timer3:
-    ldr r5, [r3]
-    cmp r5, r4
-    bls loop_timer3
+    sub r5, r5, #1
+    cmp r5, #0
+    bhi loop_timer3
 
     b testa_flag
 
 
 fim_readsonar:
-    ldr r1, [r2, #GPIO_PSR]
+    ldr r1, [r2, #GPIO_DR]
     ldr r3, =0xFFFC0000
     bic r1, r1, r3
     lsr r1, r1, #6
 
-    mov r1, r0
+    mov r0, r1
 
     ldmfd sp!, {r1-r10}
     movs pc, lr

@@ -10,8 +10,8 @@
 .set SYSCALL_SA,        22
 
 .set CALLBACK_SONAR,    0x00
-.set CALLBACK_PROX,     0x01
-.set CALLBACK_FUNCTION, 0x05
+.set CALLBACK_PROX,     0x02
+.set CALLBACK_FUNCTION, 0x04
 .set CALLBACK_SIZE,     0x07
 
 .set GPT_BASE,          0x53FA0000
@@ -30,16 +30,20 @@
 
 .set GPIO_BASE,         0x53F84000
 .set GPIO_DR,           0x00
-.set GPIO_GDIR,         0x84
-.set GPIO_PSR,          0x84
+.set GPIO_GDIR,         0x04
+.set GPIO_PSR,          0x08
 
 .set SUPERVISOR_MODE,   0x13
 .set USER_MODE,         0x10
 
-.set USER_TEXT,         0x77802000
-.set TIME_SZ,           200000
+.set USER_TEXT,         0x77804000
+.set TIME_SZ,           1000
 .set MAX_ALARMS,        8
 .set MAX_CALLBACKS,     8
+
+.set user_stack_size, 100
+.set svc_stack_size, 100
+.set irq_stack_size, 100
 
 .org 0x0
 .section .iv,"a"
@@ -115,8 +119,15 @@ SETUP_TZIC:
     mov r1, #1
     str r1, [r0, #TZIC_INTCTRL]
 
+    @ IRQ mode
+    msr CPSR_c, 0x12
+    ldr sp, =irq_stack
+
     @ Goes into supervisor mode
     msr CPSR_c, #SUPERVISOR_MODE
+
+    @ Sets supervisor stack pointer
+    ldr sp, =svc_stack
 
 
 SETUP_GPIO:
@@ -129,9 +140,12 @@ SETUP_GPIO:
     @ Goes into user mode
     msr CPSR_c, #USER_MODE
 
+    @ Sets user stack pointer
+    ldr sp, =user_stack
+
     @ Transfers control to user code
     ldr r3, =USER_TEXT
-    bx r3
+    mov pc, r3
 
 
 
@@ -181,7 +195,16 @@ alarms_vector:
 num_callbacks:
     .word 0
 callback_vector:
-    @ Each callback is represented by 3 blocks: one 1 byte long for the sonar
+    @ Each callback is represented by 3 blocks: one 2 byte long for the sonar
     @ identifier, one 2 bytes long for the proximity threshold and one 4 bytes
     @ long for the routine's address
-    .fill 7 * MAX_CALLBACKS
+    .fill 8 * MAX_CALLBACKS
+
+user_stack:
+    .fill 8*user_stack_size
+
+irq_stack:
+    .fill 8*irq_stack_size
+
+svc_stack:
+    .fill 8*svc_stack_size

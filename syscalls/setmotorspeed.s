@@ -53,5 +53,6 @@ set_motor1:
 
     mov r0, #0
 
+return:
     ldmfd sp!, {r1-r10}
     movs pc, lr

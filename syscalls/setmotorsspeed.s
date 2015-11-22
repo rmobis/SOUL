@@ -1,4 +1,5 @@
 set_motors_speed:
+    stmfd sp!,{r1-r10}
 	@ Checks for invalid speed for motor 0
 	cmp r0, #63
 	movhi r0, #-1
@@ -9,24 +10,29 @@ set_motors_speed:
 	movhi r0, #-2
 	bhi set_motors_speed_exit
 
-	@ Saves motor 0 speed
-	mov r2, r0
 
-	@ Prepares set_motor_speed syscall
-	mov r7, #SYSCALL_SMS
+    ldr r2, =GPIO_BASE @ Base GPIO address
+    ldr r3, [r2, #GPIO_DR]
 
-	@ Sets motor 1 speed
-	mov r0, #1
-	svc 0x0
+    orr r3, r3, #0x00040000 @ Writes 1 on the write bit
+    
+    @ Sets Motor0
+    bic r3, r3, #0x01F80000
+    lsl r0, r0, #19
+    eor r3, r3, r0
 
-	@ Sets motor 0 speed
-	mov r0, #0
-	mov r1, r2
-	svc 0x0
+    @ Sets Motor1
+    bic r3, r3, #0xFC000000
+    lsl r1, r1, #26
+    eor r3, r3, r1
 
-	@ Restores r7 value
-	mov r7, #SYSCALL_SMSS
+    str r3, [r2, #GPIO_DR]
+    bic r3, r3, #0x00040000 @ Writes 0 on the write bit
+    str r3, [r2, #GPIO_DR]
+
+    mov r0, #0
 
 set_motors_speed_exit:
-	@ Simply goes back, because the return value is already on r0
+
+	ldmfd sp!,{r1-r10}
     movs pc, lr
