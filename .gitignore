@@ -2,6 +2,7 @@
 *.o
 *.h
 *.x
-api_robot2.s
+bico.s
+disk.img
 MC404.html
 MC404_files
