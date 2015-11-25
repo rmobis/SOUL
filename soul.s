@@ -159,10 +159,10 @@ callback_vector:
     .fill 8 * MAX_CALLBACKS
 
 user_stack:
-    .fill 8*user_stack_size
+    .fill 8*USER_STACK_SIZE
 
 irq_stack:
-    .fill 8*irq_stack_size
+    .fill 8*IRQ_STACK_SIZE
 
 svc_stack:
-    .fill 8*svc_stack_size
+    .fill 8*SVC_STACK_SIZE

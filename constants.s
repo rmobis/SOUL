@@ -39,6 +39,6 @@
 .set MAX_ALARMS,        8
 .set MAX_CALLBACKS,     8
 
-.set user_stack_size,   100
-.set svc_stack_size,    100
-.set irq_stack_size,    100
+.set USER_STACK_SIZE,   100
+.set SVC_STACK_SIZE,    100
+.set IRQ_STACK_SIZE,    100
