@@ -15,19 +15,19 @@ quit:
 set_motor0:
     stmfd sp!,{r1-r10}
 
-    ldr r2, =DR @ Endereço do registrador de dados da GPIO
-    ldr r3, [r2]
+    ldr r2, =GPIO_BASE @ Base GPIO address
+    ldr r3, [r2, #GPIO_DR]
 
-    orr r3, r3, #0x00040000 @ Escreve 1 no bit de write
+    orr r3, r3, #0x00040000 @ Writes 1 on the write bit
     bic r3, r3, #0x01F80000
     lsl r1, r1, #19
     eor r3, r3, r1
-    
-    str r3, [r2]
 
-    bic r3, r3, #0x00040000 @ Escreve 0 no bit de write
-    
-    str r3, [r2]
+    str r3, [r2, #GPIO_DR]
+
+    bic r3, r3, #0x00040000 @ Writes 0 on the write bit
+
+    str r3, [r2, #GPIO_DR]
 
     mov r0, #0
 
@@ -37,23 +37,22 @@ set_motor0:
 set_motor1:
     stmfd sp!, {r1-r10}
 
-    ldr r2, =0x53F84000 @ Endereço do registrador de dados da GPIO
-    ldr r3, [r2]
+    ldr r2, =GPIO_BASE @ Base GPIO address
+    ldr r3, [r2, #GPIO_DR]
 
-    orr r3, r3, #0x02000000 @ Escreve 1 no bit de write
+    orr r3, r3, #0x02000000 @ Writes 1 on the write bit
     bic r3, r3, #0xFC000000
     lsl r1, r1, #26
     eor r3, r3, r1
-    
+
     str r3, [r2]
 
-    bic r3, r3, #0x02000000 @ Escreve 0 no bit de write
-    
+    bic r3, r3, #0x02000000 @ Writes 0 on the write bit
+
     str r3, [r2]
 
     mov r0, #0
 
+return:
     ldmfd sp!, {r1-r10}
     movs pc, lr
-
-

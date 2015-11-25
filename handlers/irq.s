@@ -1,35 +1,34 @@
 IRQ_HANDLER:
-    stmfd sp!, {r0-r10}
-    ldr r0, =0x53FA0008 
-    ldr r1, =1
-    str r1, [r0]
+    stmfd sp!, {r0-r10,lr}
 
-    @incrementa o tempo do sistema
-    ldr r0,=SYS_TIME
+    @ Marks the interruption as handled
+    ldr r0, =GPT_BASE
+    mov r1, #1
+    str r1, [r0, #GPT_SR]
+
+    @ Increments system time
+    ldr r0, =SYS_TIME
     ldr r1, [r0]
     add r1, r1, #1
     str r1, [r0]
 
-    @Checa se existe algum alarme marcado para agora
-    ldr r2, =prox_alarm 
+    @ Checks if there's any alarm scheduled for now
+    ldr r2, =prox_alarm
     ldr r3, [r2]
     cmp r3, r1
     bls remove_alarm
 
-fim_irq:
-    sub lr, lr, #4
-    ldmfd sp!, {r0-r10}
-    movs pc, lr
+    b check_proximity_callbacks
 
 remove_alarm:
-    @ r4 é o endereço da interrupção no vetor de interrupções
+    @ r4 is the address of the interruption on the interruptions vector
     ldr r4, [r2, #4]
     lsl r4, r4, #3
 
-    @ r6 se torna o enderço para o qual devemos saltar ao final da execução
+    @ r6 becoems the address we should jump to after handling the interruption
     ldr r7, =alarms_vector
     add r0, r4, #4
-    ldr r6, [r7, r0 ]
+    ldr r6, [r7, r0]
 
     mov r9, r4
     add r4, r4, #8
@@ -37,22 +36,22 @@ remove_alarm:
     ldr r3, =num_alarms
     ldr r0, [r3]
 
-    @ Remove o valor do vetor de alarmes
-loop_remocao_vetor:
+    @ Removes the value from the alarms vector
+loop_vector_removal:
     cmp r4, r0, LSL #3
     bhs search_next_alarm
-    ldr r8, [r7, r4] 
+    ldr r8, [r7, r4]
     str r8, [r7,r9]
     add r4,r4, #4
     add r9,r9, #4
-    ldr r8, [r7, r4] 
+    ldr r8, [r7, r4]
     str r8, [r7, r9]
     add r4,r4, #4
     add r9,r9, #4
-    b loop_remocao_vetor
+    b loop_vector_removal
 
 
-    @ procura o menor elemento dentro do vetor de alarmes
+    @ Looksf or the smallest element inside the alarm vector
 search_next_alarm:
     sub r0, r0, #1
     str r0, [r3]
@@ -73,13 +72,43 @@ search_loop:
 end_search_loop:
 
     str r8, [r2]
-    str r3, [r2,#4]
+    str r3, [r2, #4]
 
-    @dá um branch para a posição em r6
-    msr CPSR_c, 0x10
+    @ branches to the address in r6
+    @ We should change to user mode before branching, but I cannot figure
+    @ out how to come back to irq mode.
+    @msr CPSR_c, 0x10
     blx r6
-    msr CPSR_c, 0x12
+    @msr CPSR_c, 0x12
 
-    b fim_irq
+check_proximity_callbacks:
 
- 
+    @ Retrieves number of proximity callbacks
+    ldr r2, =num_callbacks
+    ldr r3, [r2]
+
+    @ iterates trough callback vector
+    ldr r4, =callback_vector
+callback_vector_loop:
+    cmp r3, #0
+    beq irq_end
+
+    ldrh r0, [r4], #2
+    ldrh r5, [r4], #2
+    ldr r6, [r4], #4
+
+    mov r7, #16
+    svc 0x0
+
+    cmp r0, r5
+
+    @ TODO: switch into user mode
+    blxls r6
+
+    sub r3, r3, #1
+    b callback_vector_loop
+
+irq_end:
+    ldmfd sp!, {r0-r10, lr}
+    sub lr, lr, #4
+    movs pc, lr
